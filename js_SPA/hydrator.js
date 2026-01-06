@@ -59,7 +59,7 @@ window.Hydrator = {
         }
         if (!this.package) {
             alert("Session expired. Please login.");
-            window.location.href = 'login_SPA/index_SPA.html';
+            window.location.href = '../login_SPA/index_SPA.html';
             return;
         }
         this.renderView(prefix);
