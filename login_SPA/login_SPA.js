@@ -47,7 +47,7 @@ form.addEventListener('submit', async (e) => {
             setTimeout(() => {
                 console.log("MWM: Redirecting to Dashboard...");
                 window.location.replace('../index.html');
-            }, 2000);
+            }, 1000);
 
         } else {
             statusMsg.innerText = getMsg('err_invalid_creds');
