@@ -24,7 +24,7 @@ window.Hydrator = {
     },
 
     renderHome: function() {
-        window.location.href = 'index_SPA.html'; 
+        window.location.href = 'index.html'; 
     },
 
     initGlobalNavigation: function() {
