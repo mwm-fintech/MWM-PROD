@@ -1,0 +1,30 @@
+/* registration_SPA.css */
+.registration-card {
+    background: white;
+    padding: 3vh 2vw;
+    border-radius: 1.5vh;
+    border: 0.1vh solid #e2e8f0;
+    box-shadow: 0 0.5vh 2vh rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 450px;
+    margin: 5vh auto;
+}
+
+.registration-card h1 {
+    color: var(--accent-navy);
+    font-weight: 700;
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
+}
+
+.status-display {
+    margin-top: 1rem;
+    font-weight: 600;
+    text-align: center;
+    min-height: 1.5rem;
+}
+
+.status-display.error { color: #ef4444; }
+.status-display.success { color: var(--accent-emerald); }
