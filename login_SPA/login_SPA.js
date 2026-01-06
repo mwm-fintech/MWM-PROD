@@ -6,7 +6,7 @@ const form = document.getElementById('loginForm');
 const statusMsg = document.getElementById('statusMessage');
 
 // --- API CONFIGURATION ---
-const API_BASE_URL = "http://127.0.0.1:8000"; 
+const API_BASE_URL = "https://mwm-iam.onrender.com"; 
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -66,14 +66,14 @@ if (langSelector) {
     langSelector.addEventListener('change', (e) => {
         const lang = e.target.value;
         // Use mwm_lang for consistency with main_SPA.js
-        localStorage.setItem('mwm_lang', lang);
+        localStorage.setItem('selectedLanguage', lang);
         location.reload(); 
     });
 }
 
 // Initialize language on load
 document.addEventListener('DOMContentLoaded', () => {
-    const savedLang = localStorage.getItem('mwm_lang') || 'en';
+    const savedLang = localStorage.getItem('selectedLanguage') || 'en';
     const langSelector = document.getElementById('language-selector');
     if (langSelector) {
         langSelector.value = savedLang;
