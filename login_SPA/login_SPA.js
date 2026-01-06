@@ -46,7 +46,7 @@ form.addEventListener('submit', async (e) => {
             // Using .replace instead of .href ensures the login page is replaced in history
             setTimeout(() => {
                 console.log("MWM: Redirecting to Dashboard...");
-                window.location.replace('../index_SPA.html');
+                window.location.replace('../index.html');
             }, 2000);
 
         } else {
