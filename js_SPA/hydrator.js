@@ -58,7 +58,6 @@ window.Hydrator = {
             if (saved) this.package = JSON.parse(saved);
         }
         if (!this.package) {
-            alert("Session expired. Please login.");
             window.location.href = './login_SPA/index_SPA.html';
             return;
         }
