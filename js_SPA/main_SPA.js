@@ -2,12 +2,26 @@
  * MWM: Global UI & Identity Engine
  */
 
-window.applyTranslations = (lang) => {
-    if (typeof translations === 'undefined') return;
-    const selectedTranslations = translations[lang] || translations['en'];
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (selectedTranslations[key]) { el.innerText = selectedTranslations[key]; }
+window.applyTranslations = function(lang) {
+    const elements = document.querySelectorAll('[data-i18n]');
+    elements.forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        
+        // 1. Check if the language exists in our translations object
+        // 2. Check if the specific key (like 'nav_mwm') exists for that language
+        if (window.translations && window.translations[lang] && window.translations[lang][key]) {
+            
+            // Check if it's an input with a placeholder or a standard element
+            if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                element.placeholder = window.translations[lang][key];
+            } else {
+                element.innerHTML = window.translations[lang][key];
+            }
+            
+        } else {
+            // Instead of crashing, we log a warning and keep the existing text
+            console.warn(`MWM Translation: Key "${key}" not found for language "${lang}".`);
+        }
     });
 };
 
