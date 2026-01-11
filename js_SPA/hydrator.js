@@ -1,6 +1,6 @@
 /**
  * MWM Hydrator: Role-Aware SPA Orchestrator
- * Optimized for Modular MWA subfolders and Asset resolution.
+ * Optimized for Modular MWA subfolders and Root-level DIY legacy files.
  */
 window.Hydrator = {
     package: null,
@@ -65,26 +65,34 @@ window.Hydrator = {
         const stage = document.getElementById('main-content-area');
         if (!stage) return;
 
-        // 1. Identify HTML (Strict match for index or main tool html)
+        // 1. Identify HTML (Checks both prefix_html and prefix_index_html)
         const htmlKey = this.package[`${prefix}_${prefix}_html`] || 
                         this.package[`${prefix}_index_html`] || 
                         this.package[`${prefix}_html`];
 
-        // 2. COLLECT ALL JS (Modular Search)
+        // 2. HYBRID JS COLLECTOR (Fixes DIY + MWA)
         let combinedJs = "";
         let foundJsKeys = [];
+        
         Object.keys(this.package).forEach(key => {
-            if (key.startsWith(`${prefix}_js`) || key.includes(`${prefix}_ui_js`)) {
+            // EXACT MATCH: For root files (e.g., "diy_js")
+            const isExact = (key === `${prefix}_js` || key === `${prefix}_ui_js` || key === `${prefix}_${prefix}_js`);
+            // PARTIAL MATCH: For subfolder files (e.g., "mwa_js_1_content_js")
+            const isPartial = (key.startsWith(`${prefix}_js_`) || key.startsWith(`${prefix}_ui_js_`));
+
+            if (isExact || isPartial) {
                 foundJsKeys.push(key);
-                // NO IIFE WRAPPER HERE: Allows File 5 to see File 3
                 combinedJs += `\n;/* Source: ${key} */\n${this.package[key]};\n`;
             }
         });
                                 
-        // 3. COLLECT ALL CSS (Modular Search)
+        // 3. HYBRID CSS COLLECTOR
         let combinedCss = "";
         Object.keys(this.package).forEach(key => {
-            if (key.startsWith(`${prefix}_css`)) {
+            const isExact = (key === `${prefix}_css` || key === `${prefix}_style_css` || key === `${prefix}_${prefix}_css`);
+            const isPartial = (key.startsWith(`${prefix}_css_`));
+
+            if (isExact || isPartial) {
                 combinedCss += `\n/* Source: ${key} */\n${this.package[key]}\n`;
             }
         });
