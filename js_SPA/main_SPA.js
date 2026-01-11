@@ -35,6 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 section.classList.add('active');
             }
         });
+
+	// It tells 7_Navigation.js to initialize the sliders
+    	if (typeof showSection === 'function') {
+        showSection(viewId);
+    	}
+
     };
 
     // 3. Drawer Logic
