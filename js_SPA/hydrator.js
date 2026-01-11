@@ -1,6 +1,6 @@
 /**
  * MWM Hydrator: Role-Aware SPA Orchestrator
- * Strictly separates Admin tools from Early Adopter gates.
+ * Optimized for Modular MWA subfolders and Legacy DIY root files.
  */
 window.Hydrator = {
     package: null,
@@ -68,29 +68,38 @@ window.Hydrator = {
         const stage = document.getElementById('main-content-area');
         if (!stage) return;
 
-        // 1. Identify specific keys in the package - RESTORED ORIGINAL LOGIC
+        // 1. Identify HTML (Strict match for index or main tool html)
         const htmlKey = this.package[`${prefix}_${prefix}_html`] || 
                         this.package[`${prefix}_index_html`] || 
                         this.package[`${prefix}_html`];
-                        
-        const jsKey =   this.package[`${prefix}_${prefix}_js`] || 
-                        this.package[`${prefix}_ui_js`] || 
-                        this.package[`${prefix}_js`];
-                        
-        const cssKey =  this.package[`${prefix}_${prefix}_css`] || 
-                        this.package[`${prefix}_index_css`] || 
-                        this.package[`${prefix}_css`];
 
-        // 2. Logic Separation: Tools vs Admin/Static
+        // 2. COLLECT ALL JS (Modular Search)
+        // We look for any key starting with prefix_js or containing prefix_ui_js
+        let combinedJs = "";
+        Object.keys(this.package).forEach(key => {
+            if (key.startsWith(`${prefix}_js`) || key.includes(`${prefix}_ui_js`)) {
+                // We add a leading semicolon and newline for safety between merged files
+                combinedJs += `\n;/* Source: ${key} */\n${this.package[key]};\n`;
+            }
+        });
+                                
+        // 3. COLLECT ALL CSS (Modular Search)
+        let combinedCss = "";
+        Object.keys(this.package).forEach(key => {
+            if (key.startsWith(`${prefix}_css`)) {
+                combinedCss += `\n/* Source: ${key} */\n${this.package[key]}\n`;
+            }
+        });
+
+        // 4. Logic Separation: Tools vs Admin/Static
         const isToolCard = ['diy', 'mwa', 'follow'].includes(prefix);
 
         if (htmlKey) {
-            // SUCCESS: Rendering Admin/Tool using your original key logic
-            console.log(`MWM: Rendering ${prefix}`);
-            this.injectContent(stage, htmlKey, jsKey, cssKey);
+            console.log(`MWM: Rendering ${prefix} (Found HTML and JS components)`);
+            this.injectContent(stage, htmlKey, combinedJs, combinedCss);
         } 
         else if (isToolCard) {
-            // FALLBACK: Only for DIY/MWA/FOLLOW
+            // FALLBACK: Only for DIY/MWA/FOLLOW if their specific content isn't found
             const p = 'early_adopter';
             const gateHtml = this.package[`${p}_index_html`] || 
                              this.package[`${p}_html`];
@@ -103,17 +112,13 @@ window.Hydrator = {
             const gateTransJs = this.package[`${p}_translations_js`];
 
             if (gateHtml) {
-                /**
-                 * FIX: Wrap combined scripts in an IIFE to isolate scope 
-                 * and add leading semicolons to prevent "Unexpected token" errors.
-                 */
+                // Maintain isolated logic for the gate using IIFEs as per original design
                 const safeTrans = gateTransJs ? `;(function(){ ${gateTransJs} })();` : '';
                 const safeJs    = gateJs      ? `;(function(){ ${gateJs} })();`      : '';
-                const combinedJs = `${safeTrans}\n${safeJs}`;
+                const combinedGateJs = `${safeTrans}\n${safeJs}`;
                 
-                console.log(`MWM: Tool missing, showing Early Adopter Gate with isolated logic.`);
-                
-                this.injectContent(stage, gateHtml, combinedJs, gateCss);
+                console.log(`MWM: Tool missing, showing Early Adopter Gate.`);
+                this.injectContent(stage, gateHtml, combinedGateJs, gateCss);
             } else {
                 console.error(`MWM: No content or gate found for tool: ${prefix}`);
             }
@@ -148,10 +153,9 @@ window.Hydrator = {
             try {
                 const script = document.createElement('script');
                 script.type = 'text/javascript';
-                // Using textContent instead of innerHTML for better script parsing
                 script.textContent = js;
                 document.body.appendChild(script);
-                // Clean up DOM (script remains in memory)
+                // Clean up DOM (script remains in execution memory)
                 document.body.removeChild(script);
             } catch (e) {
                 console.error("MWM: Script injection failed:", e);
