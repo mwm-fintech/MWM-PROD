@@ -1,11 +1,13 @@
 // registration_SPA.js
+import CONFIG from './config.js'; // 1. Import centralized config
+
 console.log("DEBUG: JS LOADED - VERSION 1.2 (Absolute URL Fix)");
 
 const form = document.getElementById('registrationForm');
 const statusMsg = document.getElementById('statusMessage');
 
-// WE MUST USE PORT 8000 FOR THE API
-const API_BASE_URL = "https://mwm-iam.onrender.com"; 
+// 2. Derive the Registration URL from the IAM service key
+const REGISTER_URL = `${CONFIG.getApiUrl('IAM')}/auth/register`; 
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -35,8 +37,7 @@ form.addEventListener('submit', async (e) => {
     statusMsg.className = "status-display";
 
     try {
-        // NOTICE: This MUST start with http://127.0.0.1:8000
-        const targetUrl = `${API_BASE_URL}/auth/register`;
+        const targetUrl = REGISTER_URL;
         console.log("DEBUG: Sending POST to:", targetUrl);
 
         const response = await fetch(targetUrl, {
@@ -79,4 +80,5 @@ document.addEventListener('DOMContentLoaded', () => {
     const selector = document.getElementById('language-selector');
     if (selector) selector.value = savedLang;
     if (window.applyLoginTranslations) window.applyLoginTranslations();
+
 });
