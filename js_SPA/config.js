@@ -5,7 +5,7 @@ const CONFIG = {
     
     ENDPOINTS: {
         IAM: "/api/iam",
-        FINANCE: "/api/financial_extractor"
+        EXTRACTOR: "/api/financial_extractor"
     },
 
     // Helper function to get full URLs
