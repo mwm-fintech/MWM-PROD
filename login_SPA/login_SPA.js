@@ -2,11 +2,14 @@
  * MWM: Login Controller (SPA Version)
  * Updated with enhanced redirect reliability.
  */
+
+import CONFIG from './config.js'; // 1. Import the config
+
 const form = document.getElementById('loginForm');
 const statusMsg = document.getElementById('statusMessage');
 
-// --- API CONFIGURATION ---
-const API_BASE_URL = "https://mwm-iam.onrender.com"; 
+// Derive the IAM login URL from config
+const LOGIN_URL = `${CONFIG.getApiUrl('IAM')}/auth/login`; 
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -21,7 +24,7 @@ form.addEventListener('submit', async (e) => {
     const password = document.getElementById('password').value;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        const response = await fetch(LOGIN_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
@@ -78,4 +81,5 @@ document.addEventListener('DOMContentLoaded', () => {
     if (langSelector) {
         langSelector.value = savedLang;
     }
+
 });
