@@ -1,7 +1,8 @@
 // config.js
 const CONFIG = {
-    // In production, we use the Nginx paths we just defined
-    API_BASE_URL: "https://mwmfintech.com",
+    // This automatically detects if the user is on www. or non-www
+    // It creates "https://mwmfintech.com" or "https://www.mwmfintech.com" dynamically
+    API_BASE_URL: `${window.location.protocol}//${window.location.hostname}`,
     
     ENDPOINTS: {
         IAM: "/api/iam",
