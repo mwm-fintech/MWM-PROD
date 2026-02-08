@@ -1,5 +1,5 @@
 // registration_SPA.js
-import CONFIG from './config.js'; // 1. Import centralized config
+import CONFIG from '../js_SPA/config.js'; // 1. Import centralized config
 
 console.log("DEBUG: JS LOADED - VERSION 1.2 (Absolute URL Fix)");
 
@@ -82,3 +82,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.applyLoginTranslations) window.applyLoginTranslations();
 
 });
+
