@@ -126,10 +126,16 @@ window.Hydrator = {
 
         if (js) {
             try {
+                // Remove previous dynamic scripts to prevent memory leaks/conflicts
+                const oldScript = document.getElementById('mwm-dynamic-script');
+                if (oldScript) oldScript.remove();
+                
                 const script = document.createElement('script');
+                script.id = 'mwm-dynamic-script';
+                script.type = 'module';    // added to manage import function for files importing config.js
                 script.textContent = js;
                 document.body.appendChild(script);
-                document.body.removeChild(script);
+                // document.body.removeChild(script);    // removed to avoid interrupting the execution in certain browsers
             } catch (e) {
                 console.error("MWM: Script injection failed:", e);
             }
@@ -157,4 +163,5 @@ window.Hydrator = {
 document.addEventListener('DOMContentLoaded', () => {
     const saved = sessionStorage.getItem('mwm_ui_package');
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
+
 });
