@@ -1,7 +1,7 @@
 // config.js
 const CONFIG = {
     // In production, we use the Nginx paths we just defined
-    API_BASE_URL: "http://46.224.227.5",
+    API_BASE_URL: "https://mwmfintech.com",
     
     ENDPOINTS: {
         IAM: "/api/iam",
