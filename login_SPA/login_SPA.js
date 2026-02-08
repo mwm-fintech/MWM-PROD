@@ -3,7 +3,7 @@
  * Updated with enhanced redirect reliability.
  */
 
-import CONFIG from './config.js'; // 1. Import the config
+import CONFIG from '../js_SPA/config.js'; // 1. Import the config
 
 const form = document.getElementById('loginForm');
 const statusMsg = document.getElementById('statusMessage');
@@ -83,3 +83,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 });
+
