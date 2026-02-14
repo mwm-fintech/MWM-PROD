@@ -109,7 +109,7 @@ window.Hydrator = {
                 const k = key.toLowerCase();
                 if (k.startsWith(`${gatePrefix}_`)) {
                     if (k.endsWith('_js')) blockJs += `\n;${this.package[key]};\n`;
-                    if (k.endsWith('_css')) blockCss += `\n${this.package[key]}\n`;
+                    if (k.endsWith('_css') || k.includes('_style')) blockCss += `\n${this.package[key]}\n`;
                 }
             });
 
@@ -175,5 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
