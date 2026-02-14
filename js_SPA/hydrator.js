@@ -98,8 +98,8 @@ window.Hydrator = {
             // UNIVERSAL SUBSIDIARY: Show the Shared Block Page
             console.warn(`MWM: ${p} not in package. Showing subsidiary block page.`);
             
-            const gatePrefix = 'shared_assets';
-            const blockHtml = this.package[`${gatePrefix}_block_html`];
+            const gatePrefix = 'common';
+            const blockHtml = this.package[`${gatePrefix}_blocked_content_html`];
             
             // Collect all JS and CSS from the shared_assets folder
             let blockJs = "";
@@ -175,4 +175,5 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
