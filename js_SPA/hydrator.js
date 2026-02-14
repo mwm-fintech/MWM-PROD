@@ -58,81 +58,100 @@ window.Hydrator = {
 
     renderView: function(prefix) {
         const stage = document.getElementById('main-content-area');
-        if (!stage) return;
+        if (!stage) {
+            console.error("MWM: 'main-content-area' not found in DOM.");
+            return;
+        }
 
-        const p = prefix.toLowerCase();
-
-        // --- SAFETY SYNC ---
-        // Ensure the package is loaded into the object even if a page refresh happened
+        // --- 1. SAFETY SYNC ---
+        // Force-load the package from storage if the local object is empty
         if (!this.package) {
             const saved = sessionStorage.getItem('mwm_ui_package');
             if (saved) {
                 this.package = JSON.parse(saved);
             } else {
-                console.error("MWM: No UI Package found in SessionStorage.");
+                console.error("MWM: No UI Package found. Redirecting to login.");
                 window.location.href = './login_SPA/index_SPA.html';
                 return;
             }
         }
-        
-        // 1. Find HTML (Checks for mwa_mwa_html, mwa_index_html, or mwa_html)
+
+        const p = prefix.toLowerCase();
+        const sortedKeys = Object.keys(this.package).sort();
+
+        // --- 2. FIND REQUESTED FEATURE HTML ---
+        // Looks for: diy_diy_html, diy_index_html, or diy_html
         const htmlKey = this.package[`${p}_${p}_html`] || 
                         this.package[`${p}_index_html`] || 
                         this.package[`${p}_html`];
 
-        // 2. UNIVERSAL JS COLLECTOR (For the requested feature)
-        let combinedJs = "";
-        let foundJsKeys = [];
-        const sortedKeys = Object.keys(this.package).sort();
-
-        sortedKeys.forEach(key => {
-            const k = key.toLowerCase();
-            if (k.startsWith(`${p}_`) && k.endsWith('_js')) {
-                foundJsKeys.push(key);
-                combinedJs += `\n;/* Source: ${key} */\n${this.package[key]};\n`;
-            }
-        });
-                                    
-        // 3. UNIVERSAL CSS COLLECTOR (For the requested feature)
-        let combinedCss = "";
-        sortedKeys.forEach(key => {
-            const k = key.toLowerCase();
-            if (k.startsWith(`${p}_`) && (k.endsWith('_css') || k.includes('_style'))) {
-                combinedCss += `\n/* Source: ${key} */\n${this.package[key]}\n`;
-            }
-        });
-
-        // 4. NAVIGATION LOGIC
         if (htmlKey) {
-            console.log(`MWM: Rendering ${p}. Injected JS Keys:`, foundJsKeys);
+            // SUCCESS PATH: User is authorized for this specific tool
+            let combinedJs = "";
+            let foundJsKeys = [];
+            let combinedCss = "";
+
+            sortedKeys.forEach(key => {
+                const k = key.toLowerCase();
+                if (k.startsWith(`${p}_`)) {
+                    // Collect JS
+                    if (k.endsWith('_js')) {
+                        foundJsKeys.push(key);
+                        combinedJs += `\n;/* Source: ${key} */\n${this.package[key]};\n`;
+                    }
+                    // Collect CSS/Styles
+                    if (k.endsWith('_css') || k.includes('_style')) {
+                        combinedCss += `\n/* Source: ${key} */\n${this.package[key]}\n`;
+                    }
+                }
+            });
+
+            console.log(`MWM: Rendering authorized view [${p}]. JS Keys:`, foundJsKeys);
             this.injectContent(stage, htmlKey, combinedJs, combinedCss);
         } 
+        // --- 3. FALLBACK PATH (THE GATE) ---
         else {
-            // UNIVERSAL SUBSIDIARY: Show the Shared Block Page
+            // FAIL PATH: Tool missing from package, trigger the 'common' block page
             console.warn(`MWM: ${p} not in package. Showing subsidiary block page.`);
             
             const gatePrefix = 'common';
+            // Explicit lookup for your specific filename: blocked_content.html
             const blockHtml = this.package[`${gatePrefix}_blocked_content_html`];
             
-            // Collect all JS and CSS from the shared_assets folder
             let blockJs = "";
             let blockCss = "";
             
             sortedKeys.forEach(key => {
                 const k = key.toLowerCase();
                 if (k.startsWith(`${gatePrefix}_`)) {
-                    if (k.endsWith('_js')) blockJs += `\n;${this.package[key]};\n`;
-                    if (k.endsWith('_css') || k.includes('_style')) blockCss += `\n${this.package[key]}\n`;
+                    // Collects translations_block_js
+                    if (k.endsWith('_js')) {
+                        blockJs += `\n;/* Fallback JS: ${key} */\n${this.package[key]};\n`;
+                    }
+                    // Collects blocked_page_css
+                    if (k.endsWith('_css') || k.includes('_style')) {
+                        blockCss += `\n/* Fallback CSS: ${key} */\n${this.package[key]}\n`;
+                    }
                 }
             });
 
             if (blockHtml) {
                 this.injectContent(stage, blockHtml, blockJs, blockCss);
             } else {
-                console.error("MWM: Critical Error - Fallback block page missing from package.");
+                // --- 4. CRITICAL DIAGNOSTIC ---
+                // If we reach here, 'common_blocked_content_html' is missing from the package object
+                console.error(`MWM: CRITICAL FAILURE - Fallback key '${gatePrefix}_blocked_content_html' missing.`);
+                console.log("MWM: Current Package Inventory:", Object.keys(this.package));
+                
+                stage.innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px;">
+                        <h3>Access Restricted</h3>
+                        <p>The system could not load the authorization gate assets.</p>
+                        <small>Check console for package inventory.</small>
+                    </div>`;
             }
         }
-    },
+    }
 
     injectContent: function(stage, html, js, css) {
         const oldStyle = document.getElementById('mwm-dynamic-style');
@@ -188,6 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
