@@ -151,7 +151,7 @@ window.Hydrator = {
                     </div>`;
             }
         }
-    }
+    },
 
     injectContent: function(stage, html, js, css) {
         const oldStyle = document.getElementById('mwm-dynamic-style');
@@ -207,6 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
