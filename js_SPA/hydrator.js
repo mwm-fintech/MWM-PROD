@@ -62,6 +62,19 @@ window.Hydrator = {
 
         const p = prefix.toLowerCase();
 
+        // --- SAFETY SYNC ---
+        // Ensure the package is loaded into the object even if a page refresh happened
+        if (!this.package) {
+            const saved = sessionStorage.getItem('mwm_ui_package');
+            if (saved) {
+                this.package = JSON.parse(saved);
+            } else {
+                console.error("MWM: No UI Package found in SessionStorage.");
+                window.location.href = './login_SPA/index_SPA.html';
+                return;
+            }
+        }
+        
         // 1. Find HTML (Checks for mwa_mwa_html, mwa_index_html, or mwa_html)
         const htmlKey = this.package[`${p}_${p}_html`] || 
                         this.package[`${p}_index_html`] || 
@@ -175,6 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
