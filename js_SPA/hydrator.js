@@ -56,103 +56,69 @@ window.Hydrator = {
         this.renderView(prefix);
     },
 
-    renderView: function(prefix) {
-        const stage = document.getElementById('main-content-area');
-        if (!stage) {
-            console.error("MWM: 'main-content-area' not found in DOM.");
-            return;
-        }
+renderView: function(prefix) {
+    const stage = document.getElementById('main-content-area');
+    if (!stage) return;
 
-        // --- 1. SAFETY SYNC ---
-        // Force-load the package from storage if the local object is empty
-        if (!this.package) {
-            const saved = sessionStorage.getItem('mwm_ui_package');
-            if (saved) {
-                this.package = JSON.parse(saved);
-            } else {
-                console.error("MWM: No UI Package found. Redirecting to login.");
-                window.location.href = './login_SPA/index_SPA.html';
-                return;
+    // 1. FORCE RE-SYNC (The most reliable way to get the data)
+    const saved = sessionStorage.getItem('mwm_ui_package');
+    if (!saved) {
+        window.location.href = './login_SPA/index_SPA.html';
+        return;
+    }
+    this.package = JSON.parse(saved);
+
+    const p = prefix.toLowerCase();
+    
+    // 2. FIND FEATURE HTML
+    // We check for prefix_prefix_html, prefix_index_html, or prefix_html
+    const htmlKey = this.package[`${p}_${p}_html`] || 
+                    this.package[`${p}_index_html`] || 
+                    this.package[`${p}_html`];
+
+    // 3. LOGIC FOR AUTHORIZED CONTENT
+    if (htmlKey) {
+        let combinedJs = "";
+        let combinedCss = "";
+        
+        Object.keys(this.package).forEach(key => {
+            const k = key.toLowerCase();
+            if (k.startsWith(`${p}_`)) {
+                if (k.endsWith('_js')) combinedJs += `\n;${this.package[key]};\n`;
+                if (k.endsWith('_css') || k.includes('_style')) combinedCss += `\n${this.package[key]}\n`;
             }
-        }
+        });
 
-        const p = prefix.toLowerCase();
-        const sortedKeys = Object.keys(this.package).sort();
+        console.log(`MWM: Rendering Authorized View [${p}]`);
+        this.injectContent(stage, htmlKey, combinedJs, combinedCss);
+    } 
+    // 4. LOGIC FOR FALLBACK (THE GATE)
+    else {
+        console.warn(`MWM: ${p} restricted. Loading Fallback Gate.`);
 
-        // --- 2. FIND REQUESTED FEATURE HTML ---
-        // Looks for: diy_diy_html, diy_index_html, or diy_html
-        const htmlKey = this.package[`${p}_${p}_html`] || 
-                        this.package[`${p}_index_html`] || 
-                        this.package[`${p}_html`];
-
-        if (htmlKey) {
-            // SUCCESS PATH: User is authorized for this specific tool
-            let combinedJs = "";
-            let foundJsKeys = [];
-            let combinedCss = "";
-
-            sortedKeys.forEach(key => {
-                const k = key.toLowerCase();
-                if (k.startsWith(`${p}_`)) {
-                    // Collect JS
-                    if (k.endsWith('_js')) {
-                        foundJsKeys.push(key);
-                        combinedJs += `\n;/* Source: ${key} */\n${this.package[key]};\n`;
-                    }
-                    // Collect CSS/Styles
-                    if (k.endsWith('_css') || k.includes('_style')) {
-                        combinedCss += `\n/* Source: ${key} */\n${this.package[key]}\n`;
-                    }
-                }
-            });
-
-            console.log(`MWM: Rendering authorized view [${p}]. JS Keys:`, foundJsKeys);
-            this.injectContent(stage, htmlKey, combinedJs, combinedCss);
-        } 
-        // --- 3. FALLBACK PATH (THE GATE) ---
-        else {
-            // FAIL PATH: Tool missing from package, trigger the 'common' block page
-            console.warn(`MWM: ${p} not in package. Showing subsidiary block page.`);
-            
-            const gatePrefix = 'common';
-            // Explicit lookup for your specific filename: blocked_content.html
-            const blockHtml = this.package[`${gatePrefix}_blocked_content_html`];
-            
+        // HARD-CODED KEYS (Using the exact strings from your PASS check)
+        const blockHtml = this.package['common_blocked_content_html'];
+        
+        if (blockHtml) {
             let blockJs = "";
             let blockCss = "";
             
-            sortedKeys.forEach(key => {
-                const k = key.toLowerCase();
-                if (k.startsWith(`${gatePrefix}_`)) {
-                    // Collects translations_block_js
-                    if (k.endsWith('_js')) {
-                        blockJs += `\n;/* Fallback JS: ${key} */\n${this.package[key]};\n`;
-                    }
-                    // Collects blocked_page_css
-                    if (k.endsWith('_css') || k.includes('_style')) {
-                        blockCss += `\n/* Fallback CSS: ${key} */\n${this.package[key]}\n`;
-                    }
+            // Collect all "common" assets
+            Object.keys(this.package).forEach(key => {
+                if (key.startsWith('common_')) {
+                    if (key.endsWith('_js')) blockJs += `\n;${this.package[key]};\n`;
+                    if (key.endsWith('_css') || key.includes('_style')) blockCss += `\n${this.package[key]}\n`;
                 }
             });
 
-            if (blockHtml) {
-                this.injectContent(stage, blockHtml, blockJs, blockCss);
-            } else {
-                // --- 4. CRITICAL DIAGNOSTIC ---
-                // If we reach here, 'common_blocked_content_html' is missing from the package object
-                console.error(`MWM: CRITICAL FAILURE - Fallback key '${gatePrefix}_blocked_content_html' missing.`);
-                console.log("MWM: Current Package Inventory:", Object.keys(this.package));
-                
-                stage.innerHTML = `
-                    <div style="padding: 40px; text-align: center; color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px;">
-                        <h3>Access Restricted</h3>
-                        <p>The system could not load the authorization gate assets.</p>
-                        <small>Check console for package inventory.</small>
-                    </div>`;
-            }
+            this.injectContent(stage, blockHtml, blockJs, blockCss);
+        } else {
+            // This is the absolute fail-safe
+            console.error("MWM: Critical - Fallback keys not found in object keys:", Object.keys(this.package));
+            stage.innerHTML = `<div style="padding:50px; text-align:center;"><h2>Access Restricted</h2><p>Please contact admin to upgrade.</p></div>`;
         }
-    },
-
+    }
+},
     injectContent: function(stage, html, js, css) {
         const oldStyle = document.getElementById('mwm-dynamic-style');
         if (oldStyle) oldStyle.remove();
@@ -207,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
