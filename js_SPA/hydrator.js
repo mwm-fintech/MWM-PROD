@@ -57,6 +57,7 @@ window.Hydrator = {
     },
 
 renderView: function(prefix) {
+    console.log("!!! HYDRATOR VERSION 2.0 IS RUNNING !!!");
     const stage = document.getElementById('main-content-area');
     if (!stage) return;
 
@@ -173,6 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
