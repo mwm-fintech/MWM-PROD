@@ -67,24 +67,20 @@ window.Hydrator = {
                         this.package[`${p}_index_html`] || 
                         this.package[`${p}_html`];
 
-        // 2. UNIVERSAL JS COLLECTOR
+        // 2. UNIVERSAL JS COLLECTOR (For the requested feature)
         let combinedJs = "";
         let foundJsKeys = [];
-        
-        // Sorting keys ensures mwa_1_... comes before mwa_8_...
         const sortedKeys = Object.keys(this.package).sort();
 
         sortedKeys.forEach(key => {
             const k = key.toLowerCase();
-            // Match any key that starts with our prefix (e.g. "mwa_") and ends with "js"
             if (k.startsWith(`${p}_`) && k.endsWith('_js')) {
                 foundJsKeys.push(key);
-                // Glue code with semicolons for safety
                 combinedJs += `\n;/* Source: ${key} */\n${this.package[key]};\n`;
             }
         });
-                                
-        // 3. UNIVERSAL CSS COLLECTOR
+                                    
+        // 3. UNIVERSAL CSS COLLECTOR (For the requested feature)
         let combinedCss = "";
         sortedKeys.forEach(key => {
             const k = key.toLowerCase();
@@ -93,20 +89,34 @@ window.Hydrator = {
             }
         });
 
-        const isToolCard = ['diy', 'mwa', 'follow'].includes(p);
-
+        // 4. NAVIGATION LOGIC
         if (htmlKey) {
             console.log(`MWM: Rendering ${p}. Injected JS Keys:`, foundJsKeys);
             this.injectContent(stage, htmlKey, combinedJs, combinedCss);
         } 
-        else if (isToolCard) {
-            // Early Adopter Fallback
-            const gate = 'early_adopter';
-            const gHtml = this.package[`${gate}_index_html`] || this.package[`${gate}_html`];
-            const gCss = this.package[`${gate}_css`];
-            const gJs = this.package[`${gate}_js`];
-            if (gHtml) {
-                this.injectContent(stage, gHtml, `;(function(){${gJs}})();`, gCss);
+        else {
+            // UNIVERSAL SUBSIDIARY: Show the Shared Block Page
+            console.warn(`MWM: ${p} not in package. Showing subsidiary block page.`);
+            
+            const gatePrefix = 'shared_assets';
+            const blockHtml = this.package[`${gatePrefix}_block_html`];
+            
+            // Collect all JS and CSS from the shared_assets folder
+            let blockJs = "";
+            let blockCss = "";
+            
+            sortedKeys.forEach(key => {
+                const k = key.toLowerCase();
+                if (k.startsWith(`${gatePrefix}_`)) {
+                    if (k.endsWith('_js')) blockJs += `\n;${this.package[key]};\n`;
+                    if (k.endsWith('_css')) blockCss += `\n${this.package[key]}\n`;
+                }
+            });
+
+            if (blockHtml) {
+                this.injectContent(stage, blockHtml, blockJs, blockCss);
+            } else {
+                console.error("MWM: Critical Error - Fallback block page missing from package.");
             }
         }
     },
@@ -165,3 +175,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
