@@ -57,11 +57,10 @@ window.Hydrator = {
     },
 
 renderView: function(prefix) {
-    console.log("!!! HYDRATOR VERSION 2.0 IS RUNNING !!!");
     const stage = document.getElementById('main-content-area');
     if (!stage) return;
 
-    // 1. FORCE RE-SYNC (The most reliable way to get the data)
+    // 1. FORCE RE-SYNC
     const saved = sessionStorage.getItem('mwm_ui_package');
     if (!saved) {
         window.location.href = './login_SPA/index_SPA.html';
@@ -71,54 +70,44 @@ renderView: function(prefix) {
 
     const p = prefix.toLowerCase();
     
-    // 2. FIND FEATURE HTML
-    // We check for prefix_prefix_html, prefix_index_html, or prefix_html
-    const htmlKey = this.package[`${p}_${p}_html`] || 
-                    this.package[`${p}_index_html`] || 
-                    this.package[`${p}_html`];
+    // 2. SELECT THE HTML (The "Gatekeeper")
+    // If specific prefix HTML exists, use it. Otherwise, use the Blocked fallback.
+    const authorizedHtml = this.package[`${p}_${p}_html`] || 
+                           this.package[`${p}_index_html`] || 
+                           this.package[`${p}_html`];
+    
+    const blockHtml = this.package['blockade_blocked_content_html'];
+    
+    const activeHtml = authorizedHtml || blockHtml;
 
-    // 3. LOGIC FOR AUTHORIZED CONTENT
-    if (htmlKey) {
-        let combinedJs = "";
-        let combinedCss = "";
-        
-        Object.keys(this.package).forEach(key => {
-            const k = key.toLowerCase();
-            if (k.startsWith(`${p}_`)) {
-                if (k.endsWith('_js')) combinedJs += `\n;${this.package[key]};\n`;
-                if (k.endsWith('_css') || k.includes('_style')) combinedCss += `\n${this.package[key]}\n`;
-            }
-        });
-
-        console.log(`MWM: Rendering Authorized View [${p}]`);
-        this.injectContent(stage, htmlKey, combinedJs, combinedCss);
-    } 
-    // 4. LOGIC FOR FALLBACK (THE GATE)
-    else {
-        console.warn(`MWM: ${p} restricted. Loading Fallback Gate.`);
-
-        // HARD-CODED KEYS (Using the exact strings from your PASS check)
-        const blockHtml = this.package['common_blocked_content_html'];
-        
-        if (blockHtml) {
-            let blockJs = "";
-            let blockCss = "";
-            
-            // Collect all "common" assets
-            Object.keys(this.package).forEach(key => {
-                if (key.startsWith('common_')) {
-                    if (key.endsWith('_js')) blockJs += `\n;${this.package[key]};\n`;
-                    if (key.endsWith('_css') || key.includes('_style')) blockCss += `\n${this.package[key]}\n`;
-                }
-            });
-
-            this.injectContent(stage, blockHtml, blockJs, blockCss);
-        } else {
-            // This is the absolute fail-safe
-            console.error("MWM: Critical - Fallback keys not found in object keys:", Object.keys(this.package));
-            stage.innerHTML = `<div style="padding:50px; text-align:center;"><h2>Access Restricted</h2><p>Please contact admin to upgrade.</p></div>`;
-        }
+    // Absolute fail-safe if even common_blocked is missing
+    if (!activeHtml) {
+        stage.innerHTML = `<div style="padding:50px; text-align:center;"><h2>Access Restricted</h2></div>`;
+        return;
     }
+
+    // 3. UNIVERSAL ASSET COLLECTION
+    let combinedJs = "";
+    let combinedCss = "";
+    
+    // Sort keys alphabetically so 'common_' always loads BEFORE 'follow_' or 'diy_'
+    Object.keys(this.package).sort().forEach(key => {
+        const k = key.toLowerCase();
+        
+        // LOGIC: If it belongs to 'common' OR it belongs to the 'clicked prefix'
+        if (k.startsWith('common_') || k.startsWith(`${p}_`)) {
+            if (k.endsWith('_js')) {
+                combinedJs += `\n/* --- Source: ${key} --- */\n;${this.package[key]};\n`;
+            }
+            if (k.endsWith('_css') || k.includes('_style')) {
+                combinedCss += `\n/* --- Source: ${key} --- */\n${this.package[key]}\n`;
+            }
+        }
+    });
+
+    // 4. INJECT EVERYTHING
+    console.log(`MWM: Hydrating [${p}] | Authorized: ${!!authorizedHtml}`);
+    this.injectContent(stage, activeHtml, combinedJs, combinedCss, p);
 },
     injectContent: function(stage, html, js, css) {
         const oldStyle = document.getElementById('mwm-dynamic-style');
@@ -174,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
