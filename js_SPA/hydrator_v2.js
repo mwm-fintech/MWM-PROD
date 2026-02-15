@@ -57,58 +57,55 @@ window.Hydrator = {
     },
 
 renderView: function(prefix) {
-        const stage = document.getElementById('main-content-area');
-        if (!stage) return;
+    const stage = document.getElementById('main-content-area');
+    if (!stage) return;
 
-        // 1. FORCE RE-SYNC WITH SESSION STORAGE
-        const saved = sessionStorage.getItem('mwm_ui_package');
-        if (!saved) {
-            window.location.href = './login_SPA/index_SPA.html';
-            return;
-        }
-        this.package = JSON.parse(saved);
+    // 1. RE-SYNC
+    const saved = sessionStorage.getItem('mwm_ui_package');
+    if (!saved) { window.location.href = './login_SPA/index_SPA.html'; return; }
+    this.package = JSON.parse(saved);
 
-        const p = prefix.toLowerCase();
-        
-        // 2. SELECT THE HTML (The "Gatekeeper")
-        // Check for specific feature HTML; if missing, use the blockade fallback
-        const authorizedHtml = this.package[`${p}_${p}_html`] || 
-                               this.package[`${p}_index_html`] || 
-                               this.package[`${p}_html`];
-        
-        const blockHtml = this.package['blockade_blocked_content_html'];
-        
-        const activeHtml = authorizedHtml || blockHtml;
+    const p = prefix.toLowerCase();
+    console.log(`!!! HYDRATOR 2.1 IN ACTION - Target: ${p} !!!`);
+    
+    // 2. HTML SELECTION
+    const authHtml = this.package[`${p}_${p}_html`] || this.package[`${p}_index_html`] || this.package[`${p}_html`];
+    const blockHtml = this.package['blockade_blocked_content_html'];
+    const activeHtml = authHtml || blockHtml;
 
-        // Absolute fail-safe if the package is corrupted
-        if (!activeHtml) {
-            stage.innerHTML = `<div style="padding:50px; text-align:center;"><h2>Access Restricted</h2><p>Please contact support.</p></div>`;
-            return;
-        }
+    if (!activeHtml) {
+        stage.innerHTML = `<div style="padding:50px; text-align:center;"><h2>Access Restricted</h2></div>`;
+        return;
+    }
 
-        // 3. UNIVERSAL ASSET COLLECTION
-        let combinedJs = "";
-        let combinedCss = "";
+    // 3. ASSET COLLECTION
+    let combinedJs = "";
+    let combinedCss = "";
+    const includedKeys = []; // For debugging
+
+    // We use a case-insensitive check and trim to be safe
+    Object.keys(this.package).sort().forEach(key => {
+        const k = key.toLowerCase().trim();
         
-        // Sort keys alphabetically: 'common_' (C) always appends before 'follow_' (F) or 'mwa_' (M)
-        Object.keys(this.package).sort().forEach(key => {
-            const k = key.toLowerCase();
+        // Match if it starts with 'common_' OR the current prefix
+        if (k.startsWith('common_') || k.startsWith(`${p}_`)) {
+            includedKeys.push(key); // Track what we found
             
-            // LOGIC: Capture SHARED tools (common_) AND the SPECIFIC feature tools (p_)
-            if (k.startsWith('common_') || k.startsWith(`${p}_`)) {
-                if (k.endsWith('_js')) {
-                    combinedJs += `\n/* --- Source: ${key} --- */\n;${this.package[key]};\n`;
-                }
-                if (k.endsWith('_css') || k.includes('_style')) {
-                    combinedCss += `\n/* --- Source: ${key} --- */\n${this.package[key]}\n`;
-                }
+            if (k.endsWith('_js')) {
+                combinedJs += `\n/* --- START: ${key} --- */\n;${this.package[key]};\n`;
             }
-        });
+            if (k.endsWith('_css') || k.includes('_style')) {
+                combinedCss += `\n${this.package[key]}\n`;
+            }
+        }
+    });
 
-        // 4. INJECT EVERYTHING
-        console.log(`MWM: Hydrating [${p}] | Authorized: ${!!authorizedHtml}`);
-        this.injectContent(stage, activeHtml, combinedJs, combinedCss);
-    },
+    // DEBUG TABLE: This will show us exactly what got injected
+    console.table(includedKeys.map(k => ({ Asset: k, Type: k.endsWith('_js') ? 'JS' : 'CSS/HTML' })));
+
+    // 4. INJECT
+    this.injectContent(stage, activeHtml, combinedJs, combinedCss);
+},
     
     injectContent: function(stage, html, js, css) {
         const oldStyle = document.getElementById('mwm-dynamic-style');
@@ -164,6 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
