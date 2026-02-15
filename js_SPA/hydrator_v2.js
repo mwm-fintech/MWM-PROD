@@ -57,58 +57,59 @@ window.Hydrator = {
     },
 
 renderView: function(prefix) {
-    const stage = document.getElementById('main-content-area');
-    if (!stage) return;
+        const stage = document.getElementById('main-content-area');
+        if (!stage) return;
 
-    // 1. FORCE RE-SYNC
-    const saved = sessionStorage.getItem('mwm_ui_package');
-    if (!saved) {
-        window.location.href = './login_SPA/index_SPA.html';
-        return;
-    }
-    this.package = JSON.parse(saved);
-
-    const p = prefix.toLowerCase();
-    
-    // 2. SELECT THE HTML (The "Gatekeeper")
-    // If specific prefix HTML exists, use it. Otherwise, use the Blocked fallback.
-    const authorizedHtml = this.package[`${p}_${p}_html`] || 
-                           this.package[`${p}_index_html`] || 
-                           this.package[`${p}_html`];
-    
-    const blockHtml = this.package['blockade_blocked_content_html'];
-    
-    const activeHtml = authorizedHtml || blockHtml;
-
-    // Absolute fail-safe if even common_blocked is missing
-    if (!activeHtml) {
-        stage.innerHTML = `<div style="padding:50px; text-align:center;"><h2>Access Restricted</h2></div>`;
-        return;
-    }
-
-    // 3. UNIVERSAL ASSET COLLECTION
-    let combinedJs = "";
-    let combinedCss = "";
-    
-    // Sort keys alphabetically so 'common_' always loads BEFORE 'follow_' or 'diy_'
-    Object.keys(this.package).sort().forEach(key => {
-        const k = key.toLowerCase();
-        
-        // LOGIC: If it belongs to 'common' OR it belongs to the 'clicked prefix'
-        if (k.startsWith('common_') || k.startsWith(`${p}_`)) {
-            if (k.endsWith('_js')) {
-                combinedJs += `\n/* --- Source: ${key} --- */\n;${this.package[key]};\n`;
-            }
-            if (k.endsWith('_css') || k.includes('_style')) {
-                combinedCss += `\n/* --- Source: ${key} --- */\n${this.package[key]}\n`;
-            }
+        // 1. FORCE RE-SYNC WITH SESSION STORAGE
+        const saved = sessionStorage.getItem('mwm_ui_package');
+        if (!saved) {
+            window.location.href = './login_SPA/index_SPA.html';
+            return;
         }
-    });
+        this.package = JSON.parse(saved);
 
-    // 4. INJECT EVERYTHING
-    console.log(`MWM: Hydrating [${p}] | Authorized: ${!!authorizedHtml}`);
-    this.injectContent(stage, activeHtml, combinedJs, combinedCss, p);
-},
+        const p = prefix.toLowerCase();
+        
+        // 2. SELECT THE HTML (The "Gatekeeper")
+        // Check for specific feature HTML; if missing, use the blockade fallback
+        const authorizedHtml = this.package[`${p}_${p}_html`] || 
+                               this.package[`${p}_index_html`] || 
+                               this.package[`${p}_html`];
+        
+        const blockHtml = this.package['blockade_blocked_content_html'];
+        
+        const activeHtml = authorizedHtml || blockHtml;
+
+        // Absolute fail-safe if the package is corrupted
+        if (!activeHtml) {
+            stage.innerHTML = `<div style="padding:50px; text-align:center;"><h2>Access Restricted</h2><p>Please contact support.</p></div>`;
+            return;
+        }
+
+        // 3. UNIVERSAL ASSET COLLECTION
+        let combinedJs = "";
+        let combinedCss = "";
+        
+        // Sort keys alphabetically: 'common_' (C) always appends before 'follow_' (F) or 'mwa_' (M)
+        Object.keys(this.package).sort().forEach(key => {
+            const k = key.toLowerCase();
+            
+            // LOGIC: Capture SHARED tools (common_) AND the SPECIFIC feature tools (p_)
+            if (k.startsWith('common_') || k.startsWith(`${p}_`)) {
+                if (k.endsWith('_js')) {
+                    combinedJs += `\n/* --- Source: ${key} --- */\n;${this.package[key]};\n`;
+                }
+                if (k.endsWith('_css') || k.includes('_style')) {
+                    combinedCss += `\n/* --- Source: ${key} --- */\n${this.package[key]}\n`;
+                }
+            }
+        });
+
+        // 4. INJECT EVERYTHING
+        console.log(`MWM: Hydrating [${p}] | Authorized: ${!!authorizedHtml}`);
+        this.injectContent(stage, activeHtml, combinedJs, combinedCss);
+    },
+    
     injectContent: function(stage, html, js, css) {
         const oldStyle = document.getElementById('mwm-dynamic-style');
         if (oldStyle) oldStyle.remove();
@@ -163,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
