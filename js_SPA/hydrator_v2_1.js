@@ -139,6 +139,18 @@ renderView: function(prefix) {
 
         const currentLang = localStorage.getItem('selectedLanguage') || 'en';
         if (window.applyTranslations) window.applyTranslations(currentLang);
+
+        // We try to switchView using the current prefix. 
+        // We look for [prefix]-section (like follow-section) 
+        // or [prefix]-view (like quantitative-view)
+        if (window.switchView) {
+            // This is smart: it tries to find the ID based on the content just injected
+            const activeView = stage.querySelector('.view-section');
+            if (activeView && activeView.id) {
+                window.switchView(activeView.id);
+            }
+        }
+        
         window.scrollTo(0, 0);
     },
 
@@ -161,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
