@@ -149,12 +149,21 @@ renderView: function(prefix) {
         }
     
         // 5. Activation Handshake
-        // This wakes up the visibility and scroll behavior
-        if (window.switchView) {
-            const activeView = stage.querySelector('.view-section');
-            if (activeView && activeView.id) {
+        const activeView = stage.querySelector('.view-section');
+        if (activeView) {
+            console.log("Hydrator: Forcing visibility for", activeView.id);
+            
+            // Physical Force: Remove any CSS that might be hiding it
+            activeView.style.display = 'block'; 
+            activeView.style.opacity = '1';
+            activeView.classList.add('active');
+        
+            // Logic Handshake: Trigger the official app switch if available
+            if (window.switchView && activeView.id) {
                 window.switchView(activeView.id);
             }
+        } else {
+            console.error("Hydrator: No .view-section found to activate!");
         }
     
         // 6. Global Translation (if applicable)
@@ -184,6 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
