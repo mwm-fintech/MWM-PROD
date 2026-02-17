@@ -88,7 +88,7 @@ renderView: function(prefix) {
         const k = key.toLowerCase().trim();
         
         // Match if it starts with 'common_' OR the current prefix
-        if (k.startsWith('common_') || k.startsWith(`${p}_`)) {
+        if (k.startsWith('common_') || k.startsWith(`blockade`) || k.startsWith(`${p}_`)) {
             includedKeys.push(key); // Track what we found
             
             if (k.endsWith('_js')) {
@@ -173,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
