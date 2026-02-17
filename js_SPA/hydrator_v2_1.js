@@ -108,47 +108,54 @@ renderView: function(prefix) {
 },
     
     injectContent: function(stage, html, js, css) {
+        // 1. Manage Styles
         const oldStyle = document.getElementById('mwm-dynamic-style');
         if (oldStyle) oldStyle.remove();
-
+    
         if (css) {
             const style = document.createElement('style');
             style.id = 'mwm-dynamic-style';
             style.textContent = css;
             document.head.appendChild(style);
         }
-
+    
+        // 2. Inject HTML Structure
         stage.innerHTML = html;
-
+    
+        // 3. Resolve Language and Sync storage
+        // Your blockade_js looks for 'mwm_lang' in sessionStorage, 
+        // but your app uses 'selectedLanguage' in localStorage. We sync them here.
+        const currentLang = localStorage.getItem('selectedLanguage') || 'en';
+        sessionStorage.setItem('mwm_lang', currentLang); 
+    
+        // 4. Inject and Execute JS
         if (js) {
             try {
-                // Remove previous dynamic scripts to prevent memory leaks/conflicts
                 const oldScript = document.getElementById('mwm-dynamic-script');
                 if (oldScript) oldScript.remove();
                 
                 const script = document.createElement('script');
                 script.id = 'mwm-dynamic-script';
-                script.type = 'module';    // added to manage import function for files importing config.js
+                script.type = 'module'; 
                 script.textContent = js;
                 document.body.appendChild(script);
-                // document.body.removeChild(script);    // removed to avoid interrupting the execution in certain browsers
             } catch (e) {
                 console.error("MWM: Script injection failed:", e);
             }
         }
-
-        const currentLang = localStorage.getItem('selectedLanguage') || 'en';
-        if (window.applyTranslations) window.applyTranslations(currentLang);
-
-        // We try to switchView using the current prefix. 
-        // We look for [prefix]-section (like follow-section) 
-        // or [prefix]-view (like quantitative-view)
+    
+        // 5. Activation Handshake
+        // This wakes up the visibility and scroll behavior
         if (window.switchView) {
-            // This is smart: it tries to find the ID based on the content just injected
             const activeView = stage.querySelector('.view-section');
             if (activeView && activeView.id) {
                 window.switchView(activeView.id);
             }
+        }
+    
+        // 6. Global Translation (if applicable)
+        if (window.applyTranslations) {
+            window.applyTranslations(currentLang);
         }
         
         window.scrollTo(0, 0);
@@ -173,6 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
