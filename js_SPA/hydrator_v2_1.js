@@ -81,16 +81,20 @@ renderView: function(prefix) {
     // 3. ASSET COLLECTION
     let combinedJs = "";
     let combinedCss = "";
-    const includedKeys = []; // For debugging
-
-    // We use a case-insensitive check and trim to be safe
+    const includedKeys = [];
+    
+    // Define the "Must-Have" prefixes for this render
+    const allowedPrefixes = ['common_', 'blockade_']; 
+    allowedPrefixes.push(`${p}_`); // Add the actual tool prefix (e.g., 'follow_')
+    
     Object.keys(this.package).sort().forEach(key => {
         const k = key.toLowerCase().trim();
         
-        // Match if it starts with 'common_' OR the current prefix
-        if (k.startsWith('common_') || k.startsWith(`blockade`) || k.startsWith(`${p}_`)) {
-            includedKeys.push(key); // Track what we found
-            
+        // Check if the key starts with ANY of our allowed prefixes
+        const isAllowed = allowedPrefixes.some(pref => k.startsWith(pref));
+    
+        if (isAllowed) {
+            includedKeys.push(key);
             if (k.endsWith('_js')) {
                 combinedJs += `\n/* --- START: ${key} --- */\n;${this.package[key]};\n`;
             }
@@ -180,6 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
