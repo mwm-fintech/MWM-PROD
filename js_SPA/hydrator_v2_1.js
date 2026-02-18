@@ -149,22 +149,26 @@ renderView: function(prefix) {
         }
     
         // 5. Activation Handshake
+
+        // A. Reset: Kill all active states everywhere in the app
+        document.querySelectorAll('.view-section').forEach(el => {
+            el.classList.remove('active');
+            el.style.display = 'none'; // Ensure physical removal
+        });
+
+        // B. Identify: Find the specific view we just injected
         const activeView = stage.querySelector('.view-section');
+        
         if (activeView) {
             console.log("Hydrator: Forcing visibility for", activeView.id);
-
-            // 1. CLEANUP: Tell the rest of the app to "shut down" any other active views
-            // This removes the 'active' class from every section on the site
-            document.querySelectorAll('.view-section').forEach(sec => {
-                sec.classList.remove('active');
-                sec.style.display = 'none'; // Ensure they are physically hidden
-            });
             
             // Physical Force: Remove any CSS that might be hiding it
+            // C. Activate: Turn on only this one
             activeView.style.display = 'block'; 
             activeView.style.opacity = '1';
             activeView.classList.add('active');
         
+            // D. Sync: Tell the global app logic which ID is now live
             // Logic Handshake: Trigger the official app switch if available
             if (window.switchView && activeView.id) {
                 window.switchView(activeView.id);
@@ -200,6 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
