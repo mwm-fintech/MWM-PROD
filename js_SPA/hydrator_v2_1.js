@@ -152,6 +152,13 @@ renderView: function(prefix) {
         const activeView = stage.querySelector('.view-section');
         if (activeView) {
             console.log("Hydrator: Forcing visibility for", activeView.id);
+
+            // 1. CLEANUP: Tell the rest of the app to "shut down" any other active views
+            // This removes the 'active' class from every section on the site
+            document.querySelectorAll('.view-section').forEach(sec => {
+                sec.classList.remove('active');
+                sec.style.display = 'none'; // Ensure they are physically hidden
+            });
             
             // Physical Force: Remove any CSS that might be hiding it
             activeView.style.display = 'block'; 
@@ -193,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
