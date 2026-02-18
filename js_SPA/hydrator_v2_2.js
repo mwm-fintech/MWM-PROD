@@ -1,6 +1,5 @@
 /**
- * MWM Hydrator: Universal Key-Matching Orchestrator
- * Specifically handles root-level (diy-ui) and modular (mwa_1_...) naming conventions.
+ * MWM Hydrator: Universal Key-Matching Orchestrator v2.2
  */
 window.Hydrator = {
     package: null,
@@ -56,63 +55,51 @@ window.Hydrator = {
         this.renderView(prefix);
     },
 
-renderView: function(prefix) {
-    const stage = document.getElementById('main-content-area');
-    if (!stage) return;
+    renderView: function(prefix) {
+        const stage = document.getElementById('main-content-area');
+        if (!stage) return;
 
-    // 1. RE-SYNC
-    const saved = sessionStorage.getItem('mwm_ui_package');
-    if (!saved) { window.location.href = './login_SPA/index_SPA.html'; return; }
-    this.package = JSON.parse(saved);
+        const saved = sessionStorage.getItem('mwm_ui_package');
+        if (!saved) { window.location.href = './login_SPA/index_SPA.html'; return; }
+        this.package = JSON.parse(saved);
 
-    const p = prefix.toLowerCase();
-    console.log(`!!! HYDRATOR 2.2 IN ACTION - Target: ${p} !!!`);
-    
-    // 2. HTML SELECTION
-    const authHtml = this.package[`${p}_${p}_html`] || this.package[`${p}_index_html`] || this.package[`${p}_html`];
-    const blockHtml = this.package['blockade_blocked_content_html'];
-    const activeHtml = authHtml || blockHtml;
-
-    if (!activeHtml) {
-        stage.innerHTML = `<div style="padding:50px; text-align:center;"><h2>Access Restricted</h2></div>`;
-        return;
-    }
-
-    // 3. ASSET COLLECTION
-    let combinedJs = "";
-    let combinedCss = "";
-    const includedKeys = [];
-    
-    // Define the "Must-Have" prefixes for this render
-    const allowedPrefixes = ['common_', 'blockade_']; 
-    allowedPrefixes.push(`${p}_`); // Add the actual tool prefix (e.g., 'follow_')
-    
-    Object.keys(this.package).sort().forEach(key => {
-        const k = key.toLowerCase().trim();
+        const p = prefix.toLowerCase();
+        console.log(`!!! HYDRATOR 2.2 IN ACTION - Target: ${p} !!!`);
         
-        // Check if the key starts with ANY of our allowed prefixes
-        const isAllowed = allowedPrefixes.some(pref => k.startsWith(pref));
-    
-        if (isAllowed) {
-            includedKeys.push(key);
-            if (k.endsWith('_js')) {
-                combinedJs += `\n/* --- START: ${key} --- */\n;${this.package[key]};\n`;
-            }
-            if (k.endsWith('_css') || k.includes('_style')) {
-                combinedCss += `\n${this.package[key]}\n`;
-            }
+        const authHtml = this.package[`${p}_${p}_html`] || this.package[`${p}_index_html`] || this.package[`${p}_html`];
+        const blockHtml = this.package['blockade_blocked_content_html'];
+        const activeHtml = authHtml || blockHtml;
+
+        if (!activeHtml) {
+            stage.innerHTML = `<div style="padding:50px; text-align:center;"><h2>Access Restricted</h2></div>`;
+            return;
         }
-    });
 
-    // DEBUG TABLE: This will show us exactly what got injected
-    console.table(includedKeys.map(k => ({ Asset: k, Type: k.endsWith('_js') ? 'JS' : 'CSS/HTML' })));
+        let combinedJs = "";
+        let combinedCss = "";
+        const includedKeys = [];
+        const allowedPrefixes = ['common_', 'blockade_', p + '_']; 
+        
+        Object.keys(this.package).sort().forEach(key => {
+            const k = key.toLowerCase().trim();
+            const isAllowed = allowedPrefixes.some(pref => k.startsWith(pref));
+        
+            if (isAllowed) {
+                includedKeys.push(key);
+                if (k.endsWith('_js')) {
+                    combinedJs += `\n/* --- START: ${key} --- */\n;${this.package[key]};\n`;
+                }
+                if (k.endsWith('_css') || k.includes('_style')) {
+                    combinedCss += `\n${this.package[key]}\n`;
+                }
+            }
+        });
 
-    // 4. INJECT
-    this.injectContent(stage, activeHtml, combinedJs, combinedCss);
-},
+        console.table(includedKeys.map(k => ({ Asset: k, Type: k.endsWith('_js') ? 'JS' : 'CSS/HTML' })));
+        this.injectContent(stage, activeHtml, combinedJs, combinedCss);
+    },
     
     injectContent: function(stage, html, js, css) {
-        // 1. Manage Styles
         const oldStyle = document.getElementById('mwm-dynamic-style');
         if (oldStyle) oldStyle.remove();
     
@@ -123,79 +110,50 @@ renderView: function(prefix) {
             document.head.appendChild(style);
         }
     
-        // 2. Inject HTML Structure
         stage.innerHTML = html;
     
-        // 3. Resolve Language and Sync storage
-        // Your blockade_js looks for 'mwm_lang' in sessionStorage, 
-        // but your app uses 'selectedLanguage' in localStorage. We sync them here.
         const currentLang = localStorage.getItem('selectedLanguage') || 'en';
         sessionStorage.setItem('mwm_lang', currentLang); 
     
-        // 4. Inject and Execute JS
         if (js) {
-            try {
-                const oldScript = document.getElementById('mwm-dynamic-script');
-                if (oldScript) oldScript.remove();
-                
-                const script = document.createElement('script');
-                script.id = 'mwm-dynamic-script';
-                script.type = 'module'; 
-                script.textContent = js;
-                document.body.appendChild(script);
-            } catch (e) {
-                console.error("MWM: Script injection failed:", e);
-            }
+            const oldScript = document.getElementById('mwm-dynamic-script');
+            if (oldScript) oldScript.remove();
+            
+            const script = document.createElement('script');
+            script.id = 'mwm-dynamic-script';
+            script.type = 'module'; 
+            script.textContent = js;
+            document.body.appendChild(script);
         }
     
         // 5. Activation Handshake
-        console.group("Hydrator Debug: Activation Phase");
+        console.group("Hydrator Activation");
         
-        // A. THE HIDE: Immediate nuke of all views
-        const allBefore = document.querySelectorAll('.view-section.active');
-        console.log("Sections active BEFORE reset:", Array.from(allBefore).map(el => el.id));
-        
+        // Hide existing views
         document.querySelectorAll('.view-section').forEach(view => {
             view.classList.remove('active');
             view.style.setProperty('display', 'none', 'important'); 
         });
         
-        // B. Identify
         const activeView = stage.querySelector('.view-section');
-        console.log("New view found in stage:", activeView ? activeView.id : "NONE");
         
         if (activeView) {
-            console.log("Hydrator: Forcing visibility for", activeView.id);
-        
-            // C. Activate: Immediate Force
-            activeView.style.setProperty('display', 'block', 'important');
-            activeView.style.setProperty('opacity', '1', 'important');
             activeView.classList.add('active');
-        
-            // D. The Safety Catch: 
-            // We wrap the handshake in a tiny timeout. 
-            // This forces the "Switch to quantitative" (from the other script) to happen 
-            // FIRST, so that OUR switch back to the cards happens LAST.
+            // Timeout to allow SPA switchView to take over
             setTimeout(() => {
-                if (window.switchView && activeView.id) {
-                    console.log("Action: Final Logic Sync for:", activeView.id);
+                if (window.switchView) {
                     window.switchView(activeView.id);
-                    
-                    // Re-confirm display after the switchView call
-                    activeView.style.setProperty('display', 'block', 'important');
                 }
-            }, 150); // 50ms is enough to win the race condition
-        
-        } else {
-            console.error("Hydrator: No .view-section found to activate!");
+            }, 50); 
         }
-        
         console.groupEnd();
         
-        // 6. Global Translation (if applicable)
-        if (window.applyTranslations) {
-            window.applyTranslations(currentLang);
-        }
+        // 6. Global Translation (Delayed for Module parsing)
+        setTimeout(() => {
+            if (window.applyTranslations) {
+                window.applyTranslations(currentLang);
+            }
+        }, 150);
         
         window.scrollTo(0, 0);
     },
@@ -217,30 +175,4 @@ renderView: function(prefix) {
 document.addEventListener('DOMContentLoaded', () => {
     const saved = sessionStorage.getItem('mwm_ui_package');
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
-
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
