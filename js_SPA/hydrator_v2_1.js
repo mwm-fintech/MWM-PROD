@@ -184,7 +184,7 @@ renderView: function(prefix) {
                     // Re-confirm display after the switchView call
                     activeView.style.setProperty('display', 'block', 'important');
                 }
-            }, 50); // 50ms is enough to win the race condition
+            }, 150); // 50ms is enough to win the race condition
         
         } else {
             console.error("Hydrator: No .view-section found to activate!");
@@ -219,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
