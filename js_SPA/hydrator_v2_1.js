@@ -158,7 +158,8 @@ renderView: function(prefix) {
         
         document.querySelectorAll('.view-section').forEach(view => {
             view.classList.remove('active');
-            view.style.display = 'none'; 
+            // Using setProperty with 'important' ensures we override the global SPA scripts
+            view.style.setProperty('display', 'none', 'important'); 
         });
 
         // B. Identify: Find the specific view we just injected
@@ -170,9 +171,10 @@ renderView: function(prefix) {
             
             // Physical Force: Remove any CSS that might be hiding it
             // C. Activate: Turn on only this one
-            activeView.style.display = 'block'; 
-            activeView.style.opacity = '1';
+            activeView.style.setProperty('display', 'block', 'important');
+            activeView.style.setProperty('opacity', '1', 'important');
             activeView.classList.add('active');
+            
             console.log("Action: Forced 'active' class and 'block' display on:", activeView.id);
             
             // D. Sync: Tell the global app logic which ID is now live
@@ -214,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
