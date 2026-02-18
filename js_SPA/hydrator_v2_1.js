@@ -150,11 +150,11 @@ renderView: function(prefix) {
     
         // 5. Activation Handshake
 
-        // A. Reset: Kill all active states everywhere in the app
-        document.querySelectorAll('.view-section').forEach(el => {
-            el.classList.remove('active');
-            el.style.setProperty('display', 'none', 'important'); 
-            el.style.opacity = '0';
+        // A. THE HIDE: Physically hide every view-section on the page immediately.
+        // This ensures that "Quantitative" or any other view vanishes before we show the new one.
+        document.querySelectorAll('.view-section').forEach(view => {
+            view.classList.remove('active');
+            view.style.display = 'none'; 
         });
 
         // B. Identify: Find the specific view we just injected
@@ -205,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
