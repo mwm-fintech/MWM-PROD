@@ -42,21 +42,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Swapping views logic (Internal navigation)
     window.switchView = (viewId) => {
+    // 1. Find all sections
     const sections = document.querySelectorAll('.view-section');
     
-    // Determine the correct ID to look for
-    // If viewId already contains '-view', use it. If not, add it.
+    // 2. Fix the ID: If it's 'diyselection-view', leave it. 
+    // If it's just 'quantitative', add '-view'.
     const targetId = viewId.endsWith('-view') ? viewId : `${viewId}-view`;
 
     sections.forEach(section => {
         section.classList.remove('active');
-        // Reset manual display styles to let CSS classes take over again
-        section.style.display = ''; 
-
         if (section.id === targetId) {
             section.classList.add('active');
         }
     });
+
+    console.log("SwitchView logic executed for:", targetId);
+	};
 
     // Notify other scripts (like sliders/navigation)
     if (typeof showSection === 'function') {
@@ -82,3 +83,4 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 });
+
