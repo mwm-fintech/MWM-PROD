@@ -66,7 +66,7 @@ renderView: function(prefix) {
     this.package = JSON.parse(saved);
 
     const p = prefix.toLowerCase();
-    console.log(`!!! HYDRATOR 2.1 IN ACTION - Target: ${p} !!!`);
+    console.log(`!!! HYDRATOR 2.2 IN ACTION - Target: ${p} !!!`);
     
     // 2. HTML SELECTION
     const authHtml = this.package[`${p}_${p}_html`] || this.package[`${p}_index_html`] || this.package[`${p}_html`];
@@ -219,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
