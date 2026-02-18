@@ -153,7 +153,8 @@ renderView: function(prefix) {
         // A. Reset: Kill all active states everywhere in the app
         document.querySelectorAll('.view-section').forEach(el => {
             el.classList.remove('active');
-            el.style.display = 'none'; // Ensure physical removal
+            el.style.setProperty('display', 'none', 'important'); 
+            el.style.opacity = '0';
         });
 
         // B. Identify: Find the specific view we just injected
@@ -204,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
