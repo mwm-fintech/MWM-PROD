@@ -3,23 +3,30 @@
  */
 
 // 1. GLOBAL SWITCH VIEW
-window.switchView = function(viewId) {
-    console.log("Switched to:", viewId);
-    const sections = document.querySelectorAll('.view-section');
-    const targetId = viewId.endsWith('-view') ? viewId : `${viewId}-view`;
+window.switchView = (viewId) => {
+        const sections = document.querySelectorAll('.view-section');
+        
+        // Ensure ID mapping handles suffixes correctly
+        const targetId = viewId.endsWith('-view') ? viewId : `${viewId}-view`;
 
-    sections.forEach(section => {
-        section.classList.remove('active');
-        section.style.display = ''; 
-        if (section.id === targetId) {
-            section.classList.add('active');
+        sections.forEach(section => {
+            section.classList.remove('active');
+            section.style.setProperty('display', 'none'); // Reset manual overrides
+
+            if (section.id === targetId) {
+                section.classList.add('active');
+                section.style.setProperty('display', 'block');
+            }
+        });
+
+        console.log("SwitchView logic executed for:", targetId);
+
+        // Notify 7_Navigation.js / Sliders
+        if (typeof showSection === 'function') {
+            const cleanId = viewId.replace('-view', '');
+            showSection(cleanId);
         }
-    });
-
-    if (typeof showSection === 'function') {
-        showSection(viewId.replace('-view', ''));
-    }
-};
+    };
 
 // 2. GLOBAL TRANSLATIONS
 window.applyTranslations = function(lang) {
@@ -62,3 +69,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
