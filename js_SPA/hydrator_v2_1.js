@@ -149,45 +149,48 @@ renderView: function(prefix) {
         }
     
         // 5. Activation Handshake
-
-        // A. THE HIDE: Physically hide every view-section on the page immediately.
-        // This ensures that "Quantitative" or any other view vanishes before we show the new one.
-
+        console.group("Hydrator Debug: Activation Phase");
+        
+        // A. THE HIDE: Immediate nuke of all views
         const allBefore = document.querySelectorAll('.view-section.active');
         console.log("Sections active BEFORE reset:", Array.from(allBefore).map(el => el.id));
         
         document.querySelectorAll('.view-section').forEach(view => {
             view.classList.remove('active');
-            // Using setProperty with 'important' ensures we override the global SPA scripts
             view.style.setProperty('display', 'none', 'important'); 
         });
-
-        // B. Identify: Find the specific view we just injected
+        
+        // B. Identify
         const activeView = stage.querySelector('.view-section');
         console.log("New view found in stage:", activeView ? activeView.id : "NONE");
         
         if (activeView) {
             console.log("Hydrator: Forcing visibility for", activeView.id);
-            
-            // Physical Force: Remove any CSS that might be hiding it
-            // C. Activate: Turn on only this one
+        
+            // C. Activate: Immediate Force
             activeView.style.setProperty('display', 'block', 'important');
             activeView.style.setProperty('opacity', '1', 'important');
             activeView.classList.add('active');
-            
-            console.log("Action: Forced 'active' class and 'block' display on:", activeView.id);
-            
-            // D. Sync: Tell the global app logic which ID is now live
-            // Logic Handshake: Trigger the official app switch if available
-            if (window.switchView && activeView.id) {
-                window.switchView(activeView.id);
-            }
+        
+            // D. The Safety Catch: 
+            // We wrap the handshake in a tiny timeout. 
+            // This forces the "Switch to quantitative" (from the other script) to happen 
+            // FIRST, so that OUR switch back to the cards happens LAST.
+            setTimeout(() => {
+                if (window.switchView && activeView.id) {
+                    console.log("Action: Final Logic Sync for:", activeView.id);
+                    window.switchView(activeView.id);
+                    
+                    // Re-confirm display after the switchView call
+                    activeView.style.setProperty('display', 'block', 'important');
+                }
+            }, 50); // 50ms is enough to win the race condition
+        
         } else {
             console.error("Hydrator: No .view-section found to activate!");
         }
         
         console.groupEnd();
-
         
         // 6. Global Translation (if applicable)
         if (window.applyTranslations) {
@@ -216,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
