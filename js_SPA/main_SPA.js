@@ -42,13 +42,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Swapping views logic (Internal navigation)
     window.switchView = (viewId) => {
-        const sections = document.querySelectorAll('.view-section');
-        sections.forEach(section => {
-            section.classList.remove('active');
-            if (section.id === `${viewId}-view`) {
-                section.classList.add('active');
-            }
-        });
+    const sections = document.querySelectorAll('.view-section');
+    
+    // Determine the correct ID to look for
+    // If viewId already contains '-view', use it. If not, add it.
+    const targetId = viewId.endsWith('-view') ? viewId : `${viewId}-view`;
+
+    sections.forEach(section => {
+        section.classList.remove('active');
+        // Reset manual display styles to let CSS classes take over again
+        section.style.display = ''; 
+
+        if (section.id === targetId) {
+            section.classList.add('active');
+        }
+    });
+
+    // Notify other scripts (like sliders/navigation)
+    if (typeof showSection === 'function') {
+        // Pass the clean ID (without '-view') to showSection if it expects it
+        const cleanId = viewId.replace('-view', '');
+        showSection(cleanId);
+    }
+	};
 
 	// It tells 7_Navigation.js to initialize the sliders
     	if (typeof showSection === 'function') {
@@ -64,4 +80,5 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!drawer) return;
         drawer.classList.toggle('expanded');
     };
+
 });
