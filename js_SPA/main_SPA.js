@@ -42,36 +42,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Swapping views logic (Internal navigation)
     window.switchView = (viewId) => {
-    // 1. Find all sections
-    const sections = document.querySelectorAll('.view-section');
-    
-    // 2. Fix the ID: If it's 'diyselection-view', leave it. 
-    // If it's just 'quantitative', add '-view'.
-    const targetId = viewId.endsWith('-view') ? viewId : `${viewId}-view`;
+        const sections = document.querySelectorAll('.view-section');
+        
+        // Fix ID mapping (ensures we find 'diyselection-view' correctly)
+        const targetId = viewId.endsWith('-view') ? viewId : `${viewId}-view`;
 
-    sections.forEach(section => {
-        section.classList.remove('active');
-        if (section.id === targetId) {
-            section.classList.add('active');
+        sections.forEach(section => {
+            section.classList.remove('active');
+            // Allow CSS to take over display again
+            section.style.display = ''; 
+
+            if (section.id === targetId) {
+                section.classList.add('active');
+            }
+        });
+
+        console.log("SwitchView logic executed for:", targetId);
+
+        // Notify 7_Navigation.js / Sliders
+        if (typeof showSection === 'function') {
+            const cleanId = viewId.replace('-view', '');
+            showSection(cleanId);
         }
-    });
-
-    console.log("SwitchView logic executed for:", targetId);
-	};
-
-    // Notify other scripts (like sliders/navigation)
-    if (typeof showSection === 'function') {
-        // Pass the clean ID (without '-view') to showSection if it expects it
-        const cleanId = viewId.replace('-view', '');
-        showSection(cleanId);
-    }
-	};
-
-	// It tells 7_Navigation.js to initialize the sliders
-    	if (typeof showSection === 'function') {
-        showSection(viewId);
-    	}
-
     };
 
     // 3. Drawer Logic
@@ -83,4 +75,5 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 });
+
 
