@@ -152,6 +152,10 @@ renderView: function(prefix) {
 
         // A. THE HIDE: Physically hide every view-section on the page immediately.
         // This ensures that "Quantitative" or any other view vanishes before we show the new one.
+
+        const allBefore = document.querySelectorAll('.view-section.active');
+        console.log("Sections active BEFORE reset:", Array.from(allBefore).map(el => el.id));
+        
         document.querySelectorAll('.view-section').forEach(view => {
             view.classList.remove('active');
             view.style.display = 'none'; 
@@ -159,6 +163,7 @@ renderView: function(prefix) {
 
         // B. Identify: Find the specific view we just injected
         const activeView = stage.querySelector('.view-section');
+        console.log("New view found in stage:", activeView ? activeView.id : "NONE");
         
         if (activeView) {
             console.log("Hydrator: Forcing visibility for", activeView.id);
@@ -168,7 +173,8 @@ renderView: function(prefix) {
             activeView.style.display = 'block'; 
             activeView.style.opacity = '1';
             activeView.classList.add('active');
-        
+            console.log("Action: Forced 'active' class and 'block' display on:", activeView.id);
+            
             // D. Sync: Tell the global app logic which ID is now live
             // Logic Handshake: Trigger the official app switch if available
             if (window.switchView && activeView.id) {
@@ -177,7 +183,10 @@ renderView: function(prefix) {
         } else {
             console.error("Hydrator: No .view-section found to activate!");
         }
-    
+        
+        console.groupEnd();
+
+        
         // 6. Global Translation (if applicable)
         if (window.applyTranslations) {
             window.applyTranslations(currentLang);
@@ -205,6 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 
 });
+
 
 
 
