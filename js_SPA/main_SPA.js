@@ -4,27 +4,39 @@
 
 // 1. Define switchView immediately on the window object
 window.switchView = function(viewId) {
-    console.log("Global Switch Triggered:", viewId);
-    
-    if (!viewId) return;
-
-    const sections = document.querySelectorAll('.view-section');
-    const targetId = viewId.endsWith('-view') ? viewId : viewId + '-view';
-
-    sections.forEach(function(section) {
-        section.classList.remove('active');
-        // Clear manual overrides to let CSS handle it
-        section.style.display = ''; 
-
-        if (section.id === targetId) {
-            section.classList.add('active');
-        }
+    // 1. Remove 'active' class from ALL sections
+    document.querySelectorAll('.view-section').forEach(s => {
+        s.classList.remove('active');
     });
 
-    // Notify external scripts
-    if (typeof showSection === 'function') {
-        const cleanId = viewId.replace('-view', '');
-        showSection(cleanId);
+    // 2. Resolve the target ID
+    let targetId = viewId.includes('-view') ? viewId : viewId + '-view';
+    let target = document.getElementById(targetId) || document.getElementById(viewId);
+
+    if (target) {
+        // 3. Add 'active' to the target
+        target.classList.add('active');
+        console.log("Switched to " + target.id);
+
+        // 4. Handle Scroll Logic
+        if (viewId === 'selection' || target.id === 'selection-view') {
+            document.body.classList.remove('view-scrollable');
+            document.body.classList.add('fixed-view');
+            window.scrollTo(0, 0);
+        } else {
+            document.body.classList.remove('fixed-view');
+            document.body.classList.add('view-scrollable');
+            // Ensure we start at the top of the new tool
+            window.scrollTo(0, 0);
+        }
+
+        /// 5. MWA SPECIAL HANDSHAKE
+        // Check local scope OR window scope for showSection
+        const triggerNav = window.showSection || (typeof showSection === 'function' ? showSection : null);
+        
+        if (viewId === 'awareness' && triggerNav) {
+            triggerNav('awareness');
+        }
     }
 };
 
@@ -65,4 +77,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
 
