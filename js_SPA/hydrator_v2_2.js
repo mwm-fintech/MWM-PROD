@@ -128,13 +128,7 @@ window.Hydrator = {
     
         // 5. Activation Handshake
         console.group("Hydrator Activation");
-        
-        // Hide existing views
-        document.querySelectorAll('.view-section').forEach(view => {
-            view.classList.remove('active');
-            view.style.setProperty('display', 'none', 'important'); 
-        });
-        
+                
         const activeView = stage.querySelector('.view-section');
         
         if (activeView) {
@@ -176,3 +170,4 @@ document.addEventListener('DOMContentLoaded', () => {
     const saved = sessionStorage.getItem('mwm_ui_package');
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 });
+
