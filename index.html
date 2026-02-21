@@ -17,7 +17,7 @@
             <li><a href="javascript:void(0)" data-view="diy" data-i18n="nav_diy">DIY</a></li>
             <li><a href="javascript:void(0)" data-view="mwa" data-i18n="nav_mwa">Academy</a></li>
 			<li id="admin-nav-item" style="display: none;">
-				<a href="#" data-view="admin" data-i18n="nav_admin" onclick="switchView('admin');" style="color: #f39c12;">Admin Console</a>
+				<a href="#" data-view="admin" data-i18n="nav_admin" onclick="Hydrator.handleProtectedNavigation('admin');" style="color: #f39c12;">Admin Console</a>
 			</li>
             <li>
                 <select id="language-selector">
@@ -64,7 +64,7 @@
                 </div>
             </a>
 
-            <a href="javascript:void(0)" onclick="Hydrator.handleProtectedNavigation('follow'); switchView('follow');" class="branch-card">
+            <a href="javascript:void(0)" onclick="Hydrator.handleProtectedNavigation('follow')" class="branch-card">
                 <div class="card-image-container">
                     <img src="images/Follow_Me.png" alt="Follow my lead" class="branch-img">
                 </div>
@@ -88,6 +88,7 @@
 </body>
 
 </html>
+
 
 
 
