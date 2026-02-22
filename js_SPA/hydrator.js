@@ -78,7 +78,9 @@ window.Hydrator = {
         let combinedJs = "";
         let combinedCss = "";
         const includedKeys = [];
-        const allowedPrefixes = ['common_', 'blockade_', p + '_']; 
+        // Extract the parent prefix (e.g., if p is 'diy_quantitative', parent is 'diy')
+        const parentPrefix = p.includes('_') ? p.split('_')[0] + '_' : p + '_';
+        const allowedPrefixes = ['common_', 'blockade_', parentPrefix, p + '_']; 
         
         Object.keys(this.package).sort().forEach(key => {
             const k = key.toLowerCase().trim();
@@ -170,4 +172,5 @@ document.addEventListener('DOMContentLoaded', () => {
     const saved = sessionStorage.getItem('mwm_ui_package');
     if (saved) window.Hydrator.unpack(JSON.parse(saved));
 });
+
 
